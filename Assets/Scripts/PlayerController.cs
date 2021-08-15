@@ -18,8 +18,9 @@ public class PlayerController : PlayerPhysics
 
     Vector2 mouseClickPos;
     Vector2 slingPos;
-    LineRenderer dirLine;
     public Vector2 slingDir;
+    [SerializeField] GameObject dirArrow;
+    [SerializeField] GameObject joystick;
 
     LayerMask groundMask;
     LayerMask wallMask;
@@ -32,7 +33,6 @@ public class PlayerController : PlayerPhysics
     private void Start()
     {
         GetComponent<CircleCollider2D>().radius = slingRadius; // Radius of the circle that manages sling hitbox
-        dirLine = GetComponentInChildren<LineRenderer>(); // Line renderer which handles the sling direction
         groundMask = LayerMask.GetMask("Ground");
         wallMask = LayerMask.GetMask("Wall");
     }
@@ -44,22 +44,15 @@ public class PlayerController : PlayerPhysics
 
     private void Update()
     {
+        Dash(30);
+
         if (IsGrounded())
         {
             sling = true;
             slingPos = transform.position;
         }
             
-        if (enableSlinging && !testPCG)
-            Sling();
-
-        if (testPCG)
-        {
-            gravity = 0;           
-            Velocity = Vector3.zero;
-            if(Input.GetKey(KeyCode.W))
-                transform.position += Vector3.up * Time.deltaTime * 10;
-        }      
+        Sling();   
     }
 
     // Enables slinging when entering sling radius
@@ -89,7 +82,7 @@ public class PlayerController : PlayerPhysics
     {
         if (collision.gameObject.CompareTag("Wall"))
         {
-           // InvertForce(new Vector2(Velocity.x * wallBounceForce, -Velocity.y));
+            InvertForce(new Vector2(Velocity.x * wallBounceForce, -Velocity.y));
         }
     }
     public bool IsGrounded()
@@ -106,6 +99,20 @@ public class PlayerController : PlayerPhysics
     {
         return Physics2D.Raycast(transform.position, Vector2.right, transform.localScale.x / 2 + .1f, wallMask) ||
                 Physics2D.Raycast(transform.position, Vector2.left, transform.localScale.x / 2 + .1f, wallMask);
+    }
+
+    void Dash(float dashForce)
+    {
+        Vector2 dir = Vector3.Normalize(Velocity);
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            Velocity += new Vector2(dir.x * 20, 20);
+        }
+        if (Input.GetKeyDown(KeyCode.D))
+        {
+            Velocity += new Vector2(dashForce, 0);
+        }
     }
 
     bool CanSling() => sling ? true : false;
@@ -146,7 +153,6 @@ public class PlayerController : PlayerPhysics
             {
                 SlingTimer(false);
                 transform.position = slingPos;
-                slingDir = Direction();
             }
         }
         // Executes if player is not able to sling
@@ -162,12 +168,12 @@ public class PlayerController : PlayerPhysics
         if (isSlinging)
         {
             ringTimerObject.transform.localScale -= Vector3.one * 2 * Time.deltaTime / slingTimer;
-            //ringTimerObject.GetComponent<SpriteRenderer>().color += new Color(-50, 50, 0, 0) * Time.deltaTime;
+            ringTimerObject.GetComponent<SpriteRenderer>().color += new Color(1, -1, 0, 0) * Time.deltaTime;
         }
         else
         {
             ringTimerObject.transform.localScale = Vector3.one * 0.5f;
-            //ringTimerObject.GetComponent<SpriteRenderer>().color = new Color(0, 1, 0, 1);
+            ringTimerObject.GetComponent<SpriteRenderer>().color = new Color(0, 1, 0, .9f);
         }
     }
 
@@ -211,18 +217,21 @@ public class PlayerController : PlayerPhysics
     {
         if (active)
         {
-            dirLine.enabled = true;
-            dirLine.SetPosition(0, slingPos);
-            dirLine.SetPosition(1, new Vector3(slingPos.x + Direction().x * 5, slingPos.y + Direction().y * 5, 0));
+            dirArrow.transform.position = slingPos;
+
+            Quaternion target = Quaternion.Euler(0, 0, Mathf.Atan2(-Direction().x, Direction().y) * Mathf.Rad2Deg);
+
+            dirArrow.transform.rotation = target;
+            dirArrow.SetActive(true);
         }
         else
-            dirLine.enabled = false;
+            dirArrow.SetActive(false);
     }
 
     // Return the direction of the sling by normalizing the inverse of the direction from the player position to the mouse position
     public Vector2 Direction()
     {
-        Vector3 direction;
+        /*Vector3 direction;
         Vector3 mouseWorldPos = MouseToWorldPos();
 
         // Get direction relative to initial mouse pos
@@ -230,9 +239,17 @@ public class PlayerController : PlayerPhysics
             direction = Vector3.Normalize(new Vector3(mouseClickPos.x, mouseClickPos.y, 0) - new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0));
         // Get direction relative to player posititon
         else
-            direction = Vector3.Normalize(new Vector3(transform.position.x, transform.position.y, 0) - new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0));
+            direction = Vector3.Normalize(new Vector3(transform.position.x, transform.position.y, 0) - new Vector3(mouseWorldPos.x, mouseWorldPos.y, 0));*/
 
-        return new Vector2(direction.x, Mathf.Clamp(direction.y, 0, 1));
+        Vector3 pointA = joystick.transform.position;
+        Vector3 pointB = MouseToWorldPos();
+ 
+        if (Vector3.Distance(pointA, pointB) < 5)
+        {
+            slingDir = Vector3.Normalize(new Vector3(pointA.x, pointA.y, 0) - new Vector3(pointB.x, pointB.y, 0));
+        }
+           
+        return new Vector2(slingDir.x, Mathf.Clamp(slingDir.y, 0, 1));
     }
 }
 

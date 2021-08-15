@@ -40,7 +40,7 @@ public class CameraController : MonoBehaviour
     {
         get 
         {
-            return transform.position.y + Height * cam.aspect;
+            return Height * cam.aspect;
         }
     }
 }

@@ -20,7 +20,7 @@ public class BlackHole : MonoBehaviour
         {          
             animator.Play("DeathAnimation");
 
-            if(transform.localScale.x <= 0)
+            if(animator.GetComponent<Transform>().localScale.x <= 0)
                 Disable();
 
             if (!AnimatorIsPlaying())

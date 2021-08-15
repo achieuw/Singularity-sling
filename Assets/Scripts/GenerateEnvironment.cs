@@ -13,6 +13,7 @@ public class GenerateEnvironment : GenericSingleton<GenerateEnvironment>
     float distanceBetweenSlingers;
     [SerializeField]
     int wallsToSpawnBeforeWaterfall;
+    [SerializeField]
     int spawnedWalls = 0;
 
     [SerializeField] PlayerController player;
@@ -35,6 +36,8 @@ public class GenerateEnvironment : GenericSingleton<GenerateEnvironment>
     {      
         ScrollObjects();
         CheckBounds();
+
+        Debug.Log(cam.Width);
     }
 
     private void Initialize()
@@ -116,7 +119,6 @@ public class GenerateEnvironment : GenericSingleton<GenerateEnvironment>
 
     void SpawnObjectByChance(GameObject objectToSpawn, float chanceToSpawn)
     {
-        Debug.Log("hey");
         int random = Random.Range(0, 101);
 
         if (random > chanceToSpawn)

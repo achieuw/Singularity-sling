@@ -34,7 +34,7 @@ public class PlayerPhysics : MonoBehaviour
         transform.position += new Vector3(Velocity.x, 0, 0) * Time.fixedDeltaTime;
 
         SetGravity(grounded);
-        Drag();     
+        Drag(grounded);     
     }
     void SetGravity(bool grounded)
     {
@@ -47,10 +47,13 @@ public class PlayerPhysics : MonoBehaviour
             Velocity = new Vector2(Velocity.x, 0);
         }
     }
-    private void Drag()
+    private void Drag(bool grounded)
     {
         // Drag is added based on the direction of the sling. A more horizontal sling adds drag more quickly and vice versa
-        m_drag = (Mathf.Abs(Velocity.x) * drag - m_drag * 0.01f) * Time.fixedDeltaTime;
+        if(!grounded)
+            m_drag = (Mathf.Abs(Velocity.x) * drag - m_drag * 0.01f) * Time.fixedDeltaTime;
+        else
+            m_drag = (Mathf.Abs(Velocity.x) * 3 * drag - m_drag * 0.01f) * Time.fixedDeltaTime;
         Vector2 temp_drag = new Vector2(m_drag, 0);
 
         if (Velocity.x < -0.2f)

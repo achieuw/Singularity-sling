@@ -26,7 +26,6 @@ public class PlayerBehaviour : MonoBehaviour
             playerActive = true;
         }
         else
-            playerActive = false;
             
         if(Mathf.Abs(player.Velocity.x) > 2)
             gfx.transform.rotation = new Quaternion(0, 0, -player.Velocity.x * 0.02f, 1);
